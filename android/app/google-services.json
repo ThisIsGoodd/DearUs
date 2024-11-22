@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "152854806792",
+    "project_id": "last-dearus",
+    "storage_bucket": "last-dearus.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:152854806792:android:cf8213defa684fb68f6cbd",
+        "android_client_info": {
+          "package_name": "com.example.last_dear_us"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZXVLw6ar7nAXUNXtXyOCezbKzZO7JGtk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

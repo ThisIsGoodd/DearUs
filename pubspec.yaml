@@ -1,0 +1,26 @@
+name: last_dear_us
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.5.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_auth: ^5.3.3
+  firebase_core: ^3.8.0
+  cloud_firestore: ^5.5.0
+  firebase_messaging: ^15.1.5
+  flutter_local_notifications: ^18.0.1
+  intl: ^0.19.0
+  syncfusion_flutter_calendar: 27.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
