@@ -1,4 +1,3 @@
-// EditProfilePage.dart: 내 정보 수정 페이지
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,6 +10,7 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   final _nicknameController = TextEditingController();
   final _birthdateController = TextEditingController();
+  final _selectedDateController = TextEditingController(); // 처음 만난 날 필드
   String? _errorMessage;
   bool _isLoading = false;
 
@@ -35,6 +35,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
             _birthdateController.text = data['birthdate'] != null
                 ? (data['birthdate'] as Timestamp).toDate().toString().split(' ')[0]
                 : '';
+            _selectedDateController.text = data['selectedDate'] != null
+                ? (data['selectedDate'] as Timestamp).toDate().toString().split(' ')[0]
+                : ''; // 처음 만난 날 로드
           }
         }
       }
@@ -60,6 +63,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
           'nickname': _nicknameController.text.trim(),
           'birthdate': Timestamp.fromDate(DateTime.parse(_birthdateController.text)),
+          'selectedDate': Timestamp.fromDate(DateTime.parse(_selectedDateController.text)), // 처음 만난 날 저장
         });
         Navigator.pop(context);
       }
@@ -111,6 +115,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       );
                       if (date != null) {
                         _birthdateController.text = date.toString().split(' ')[0];
+                      }
+                    },
+                  ),
+                  SizedBox(height: 20),
+                  TextField(
+                    controller: _selectedDateController, // 처음 만난 날 필드
+                    decoration: InputDecoration(labelText: '처음 만난 날 (yyyy-MM-dd)'),
+                    onTap: () async {
+                      DateTime? date = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(1900),
+                        lastDate: DateTime.now(),
+                      );
+                      if (date != null) {
+                        _selectedDateController.text = date.toString().split(' ')[0];
                       }
                     },
                   ),

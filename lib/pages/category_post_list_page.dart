@@ -14,7 +14,10 @@ class CategoryPostListPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           '$category 게시판',
-          style: TextStyle(color: Colors.black), // 제목 텍스트 색상
+          style: TextStyle(
+            color: Color(0xFFFDBEBE), // 제목 텍스트 색상 변경
+            fontWeight: FontWeight.bold, // 글자 강조
+          ),
         ),
         centerTitle: true, // 제목을 가운데 정렬
         backgroundColor: Colors.white, // AppBar 배경색 흰색

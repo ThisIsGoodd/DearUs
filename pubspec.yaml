@@ -24,3 +24,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  # Assets 설정
+  assets:
+    - assets/background.jpg
+    - assets/logo.png
