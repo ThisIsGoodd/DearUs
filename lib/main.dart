@@ -21,6 +21,7 @@ import 'package:last_dear_us/widgets/custom_text_field.dart';
 import 'package:last_dear_us/widgets/event_card.dart';
 import 'package:last_dear_us/widgets/post_card.dart';
 import 'package:intl/intl.dart';
+import 'package:last_dear_us/pages/chat_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -110,10 +111,12 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
-  static List<Widget> _pages = [
+
+  static final List<Widget> _pages = [
     HomePage(),
     SharedCalendarPage(),
     CommunityPage(),
+    ChatPage(connectedUserUid: 'exampleConnectedUserUid'),
     ProfilePage(),
   ];
 
@@ -140,6 +143,10 @@ class _MainNavigationState extends State<MainNavigation> {
           BottomNavigationBarItem(
             icon: Icon(Icons.forum),
             label: 'Community',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat), // 채팅 아이콘 추가
+            label: 'Chat', // 채팅 라벨 추가
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),

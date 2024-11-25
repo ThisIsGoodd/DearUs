@@ -171,7 +171,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
               children: [
                 Text(post['title'], style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                 SizedBox(height: 10),
-                Text('작성자: ${post['author']}'),
+                Text('작성자: ${post['nickname']}'),
                 SizedBox(height: 20),
                 Text(post['content']),
                 SizedBox(height: 20),

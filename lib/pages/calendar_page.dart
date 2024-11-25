@@ -30,7 +30,7 @@ class _SharedCalendarPageState extends State<SharedCalendarPage> {
         
         List<Appointment> fetchedAppointments = [];
 
-        // Fetch the appointments of current user and connected user
+        // 현재 사용자와 연결된 사용자의 약속을 가져오기
         List<String> userUids = [currentUser!.uid];
         if (connectedUserUid != null) {
           userUids.add(connectedUserUid);

@@ -43,6 +43,11 @@ class _NewPostPageState extends State<NewPostPage> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
+        // Firestore에서 현재 사용자의 닉네임 가져오기
+        final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        final userData = userDoc.data();
+        final nickname = userData?['nickname'] ?? '익명'; // 닉네임이 없으면 '익명' 사용
+
         if (widget.isEditing && widget.postId != null) {
           // 게시글 수정
           await FirebaseFirestore.instance.collection('posts').doc(widget.postId).update({
@@ -55,7 +60,7 @@ class _NewPostPageState extends State<NewPostPage> {
           await FirebaseFirestore.instance.collection('posts').add({
             'title': _titleController.text.trim(),
             'content': _contentController.text.trim(),
-            'author': user.displayName ?? '익명',
+            'nickname': nickname, // 닉네임 저장
             'userId': user.uid,
             'category': widget.category,
             'createdAt': FieldValue.serverTimestamp(),
