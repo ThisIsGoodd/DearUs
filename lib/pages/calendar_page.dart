@@ -281,7 +281,14 @@ class _SharedCalendarPageState extends State<SharedCalendarPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('일정 공유 달력'),
+        title: Text('일정 공유 달력', 
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Color(0xFFFDBEBE),
+        iconTheme: IconThemeData(color: Colors.black),
       ),
       body: SfCalendar(
         view: CalendarView.month,
@@ -289,6 +296,11 @@ class _SharedCalendarPageState extends State<SharedCalendarPage> {
         monthViewSettings: MonthViewSettings(
           appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
           showTrailingAndLeadingDates: false,
+          dayFormat: 'EEE',
+          agendaStyle: AgendaStyle(
+            backgroundColor: Color(0xFFFFF9F9),
+            appointmentTextStyle: TextStyle(color: Colors.black),
+          ),
         ),
         onTap: (CalendarTapDetails details) {
           if (details.appointments != null && details.appointments!.isNotEmpty) {
@@ -376,10 +388,13 @@ class _SharedCalendarPageState extends State<SharedCalendarPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                decoration: InputDecoration(labelText: '일정 제목'),
-                onChanged: (value) {
-                  title = value;
-                },
+                decoration: InputDecoration(
+                  labelText: '일정 제목',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  filled: true,
+                  fillColor: Colors.pink.shade50,  // 연한 핑크 배경
+                ),
+                onChanged: (value) => title = value,
               ),
               SizedBox(height: 10),
               TextField(

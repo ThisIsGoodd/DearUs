@@ -64,6 +64,7 @@ class _NewPostPageState extends State<NewPostPage> {
             'userId': user.uid,
             'category': widget.category,
             'createdAt': FieldValue.serverTimestamp(),
+            'viewCount': 0, // 기본값 추가
           });
         }
 
@@ -82,28 +83,68 @@ class _NewPostPageState extends State<NewPostPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? '게시글 수정' : '게시글 작성'),
+        title: Text(
+          widget.isEditing ? '게시글 수정' : '게시글 작성',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Color(0xFFFDBEBE), // AppBar 배경색
+        iconTheme: IconThemeData(color: Colors.black),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _isLoading
             ? Center(child: CircularProgressIndicator())
             : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // 제목 입력 필드
                   TextField(
                     controller: _titleController,
-                    decoration: InputDecoration(labelText: '제목'),
+                    decoration: InputDecoration(
+                      labelText: '제목',
+                      labelStyle: TextStyle(color: Color(0xFFFDBEBE)), // 제목 색상
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xFFFDBEBE)),
+                      ),
+                    ),
+                    style: TextStyle(color: Colors.black87), // 텍스트 색상
                   ),
-                  SizedBox(height: 10),
+                  SizedBox(height: 20), // 제목과 내용 사이의 간격
+
+                  // 내용 입력 필드
                   TextField(
                     controller: _contentController,
-                    decoration: InputDecoration(labelText: '내용'),
+                    decoration: InputDecoration(
+                      labelText: '내용',
+                      labelStyle: TextStyle(color: Color(0xFFFDBEBE)),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xFFFDBEBE)),
+                      ),
+                    ),
                     maxLines: 5,
+                    style: TextStyle(color: Colors.black87),
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: 30), // 내용과 버튼 사이의 간격
+
+                  // 저장 버튼
                   ElevatedButton(
                     onPressed: _savePost,
-                    child: Text(widget.isEditing ? '수정하기' : '작성하기'),
+                    child: _isLoading 
+                        ? CircularProgressIndicator() 
+                        : Text(
+                            widget.isEditing ? '수정하기' : '작성하기',
+                            style: TextStyle(color: Colors.white), // 글자색 설정
+                          ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFFFDBEBE), // 버튼 배경색
+                      padding: EdgeInsets.symmetric(vertical: 12.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
                   ),
                 ],
               ),

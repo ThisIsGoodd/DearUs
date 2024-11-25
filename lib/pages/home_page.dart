@@ -35,18 +35,22 @@ class _HomePageState extends State<HomePage> {
         if (snapshot.exists) {
           final data = snapshot.data();
           if (data != null && data.containsKey('selectedDate')) {
-            setState(() {
-              _selectedDate = (data['selectedDate'] as Timestamp).toDate();
-              _calculateAnniversaries();
-              _calculateDaysSinceMeeting();
-            });
+            if (mounted) {
+              setState(() {
+                _selectedDate = (data['selectedDate'] as Timestamp).toDate();
+                _calculateAnniversaries();
+                _calculateDaysSinceMeeting();
+              });
+            }
           }
         }
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = '기념일 데이터를 불러오는 중 오류가 발생했습니다.';
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = '기념일 데이터를 불러오는 중 오류가 발생했습니다.';
+        });
+      }
     }
   }
 
@@ -66,7 +70,7 @@ class _HomePageState extends State<HomePage> {
             if (connectedUserSnapshot.exists) {
               final birthdate = connectedUserSnapshot.data()?['birthdate'];
               _connectedUserNickname = connectedUserSnapshot.data()?['nickname'];
-              if (birthdate != null) {
+              if (birthdate != null && mounted) {
                 setState(() {
                   _connectedUserBirthday = (birthdate as Timestamp).toDate();
                   _calculateAnniversaries();
@@ -77,9 +81,11 @@ class _HomePageState extends State<HomePage> {
         }
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = '연결된 사용자 생일 데이터를 불러오는 중 오류가 발생했습니다.';
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = '연결된 사용자 생일 데이터를 불러오는 중 오류가 발생했습니다.';
+        });
+      }
     }
   }
 
@@ -318,72 +324,70 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           // 카테고리 버튼
-          // 카테고리 버튼 부분 수정
-Container(
-  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-  decoration: BoxDecoration(
-    color: Colors.white.withOpacity(0.8),
-    borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withOpacity(0.1),
-        blurRadius: 5,
-        offset: Offset(0, -3),
-      ),
-    ],
-  ),
-  child: SizedBox(
-    height: MediaQuery.of(context).size.height * 0.2, // 높이 설정 조정
-    child: GridView.builder(
-      padding: EdgeInsets.zero, // 패딩 제거
-      physics: NeverScrollableScrollPhysics(), // 스크롤 비활성화
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, // 2개씩 배치
-        mainAxisSpacing: 8.0, // 세로 간격
-        crossAxisSpacing: 8.0, // 가로 간격
-        childAspectRatio: 3.5, // 버튼 비율 조정
-      ),
-      itemCount: categories.length,
-      itemBuilder: (context, index) {
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    CategoryPostListPage(category: categories[index]),
-              ),
-            );
-          },
-          child: Container(
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
             decoration: BoxDecoration(
-              color: Colors.pink[100],
-              borderRadius: BorderRadius.circular(8.0),
+              color: Colors.white.withOpacity(0.8),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.3),
-                  spreadRadius: 2,
+                  color: Colors.black.withOpacity(0.1),
                   blurRadius: 5,
-                  offset: Offset(0, 3),
+                  offset: Offset(0, -3),
                 ),
               ],
             ),
-            child: Center(
-              child: Text(
-                categories[index],
-                style: TextStyle(
-                  fontSize: 14.0,
-                  fontWeight: FontWeight.bold,
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.2, // 높이 설정 조정
+              child: GridView.builder(
+                padding: EdgeInsets.zero, // 패딩 제거
+                physics: NeverScrollableScrollPhysics(), // 스크롤 비활성화
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2, // 2개씩 배치
+                  mainAxisSpacing: 8.0, // 세로 간격
+                  crossAxisSpacing: 8.0, // 가로 간격
+                  childAspectRatio: 3.5, // 버튼 비율 조정
                 ),
+                itemCount: categories.length,
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              CategoryPostListPage(category: categories[index]),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.pink[100],
+                        borderRadius: BorderRadius.circular(8.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.3),
+                            spreadRadius: 2,
+                            blurRadius: 5,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          categories[index],
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
-        );
-      },
-    ),
-  ),
-),
-
         ],
       ),
     );

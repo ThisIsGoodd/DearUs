@@ -81,7 +81,8 @@ class _EditPostPageState extends State<EditPostPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('게시글 수정'),
+        title: Text('게시글 수정', style: TextStyle(color: Colors.white)),
+        backgroundColor: Color(0xFFFDBEBE), // 앱 바 배경색
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -102,6 +103,9 @@ class _EditPostPageState extends State<EditPostPage> {
                     decoration: InputDecoration(
                       labelText: '제목',
                       border: OutlineInputBorder(),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xFFFDBEBE)),
+                      ),
                     ),
                   ),
                   SizedBox(height: 10),
@@ -110,13 +114,28 @@ class _EditPostPageState extends State<EditPostPage> {
                     decoration: InputDecoration(
                       labelText: '내용',
                       border: OutlineInputBorder(),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xFFFDBEBE)),
+                      ),
                     ),
                     maxLines: 5,
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _updatePost,
-                    child: Text('게시글 수정'),
+                    child: _isLoading 
+                        ? CircularProgressIndicator() 
+                        : Text('게시글 수정'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFFFDBEBE),
+                      padding: EdgeInsets.symmetric(vertical: 12.0),
+                      textStyle: TextStyle(color: Colors.white), // 글자색을 흰색으로 설정
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ).copyWith(
+                      foregroundColor: MaterialStateProperty.all(Colors.white), // 글자색 설정
+                    ),
                   ),
                 ],
               ),

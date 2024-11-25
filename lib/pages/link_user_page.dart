@@ -120,7 +120,6 @@ class _LinkUserPageState extends State<LinkUserPage> {
     }
   }
 
-
   Future<void> _disconnectUser() async {
     setState(() {
       _isLoading = true;
@@ -163,8 +162,17 @@ class _LinkUserPageState extends State<LinkUserPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('사용자 연결'),
+        title: Text(
+          '사용자 연결',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Color(0xFFFDBEBE),
+        iconTheme: IconThemeData(color: Colors.black),
       ),
+      backgroundColor: Colors.white,
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : Padding(
@@ -180,11 +188,26 @@ class _LinkUserPageState extends State<LinkUserPage> {
                           ),
                           SizedBox(height: 10),
                         ],
-                        Text('연결된 사용자: $_connectedUserNickname'),
-                        SizedBox(height: 10),
-                        ElevatedButton(
-                          onPressed: _disconnectUser,
-                          child: Text('연결 해제'),
+                        Text(
+                          '연결된 사용자: $_connectedUserNickname',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 20),
+                        Center(
+                          child: ElevatedButton(
+                            onPressed: _disconnectUser,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFFFDBEBE),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.0),
+                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                            ),
+                            child: Text(
+                              '연결 해제',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
+                          ),
                         ),
                       ],
                     )
@@ -200,29 +223,58 @@ class _LinkUserPageState extends State<LinkUserPage> {
                         ],
                         ElevatedButton(
                           onPressed: _generateInviteCode,
-                          child: Text('내 초대 코드 생성'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFFFDBEBE),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                          ),
+                          child: Text(
+                            '내 초대 코드 생성',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
                         ),
-                        SizedBox(height: 10),
+                        SizedBox(height: 20),
                         TextField(
                           controller: _inviteCodeController,
                           readOnly: true,
                           decoration: InputDecoration(
                             labelText: '내 초대 코드',
-                            border: OutlineInputBorder(),
+                            filled: true,
+                            fillColor: Colors.pink.shade50,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
                           ),
                         ),
                         SizedBox(height: 20),
                         TextField(
                           decoration: InputDecoration(
                             labelText: '연결할 사용자의 초대 코드 입력',
-                            border: OutlineInputBorder(),
+                            filled: true,
+                            fillColor: Colors.pink.shade50,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
                           ),
                           controller: _inviteCodeController,
                         ),
                         SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: _connectUser,
-                          child: Text('사용자 연결'),
+                        Center(
+                          child: ElevatedButton(
+                            onPressed: _connectUser,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFFFDBEBE),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.0),
+                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                            ),
+                            child: Text(
+                              '사용자 연결',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
+                          ),
                         ),
                       ],
                     ),

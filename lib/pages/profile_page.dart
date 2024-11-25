@@ -1,4 +1,3 @@
-// ProfilePage.dart: 내 정보 관리 페이지
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:last_dear_us/pages/login_page.dart';
@@ -45,37 +44,106 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile'),
+        title: Text(
+          '내 정보 관리',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Color(0xFFFDBEBE),
+        elevation: 1.0,
+        iconTheme: IconThemeData(color: Colors.black),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            ElevatedButton(
-              onPressed: _navigateToEditProfile,
-              child: Text('내 정보 수정'),
-            ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _navigateToLinkUser,
-              child: Text('사용자 연결'),
-            ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _navigateToContactUs,
-              child: Text('문의사항 작성'),
-            ),
-            Spacer(),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: ElevatedButton(
+      body: Container(
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildMenuButton(
+                icon: Icons.person,
+                text: '내 정보 수정',
+                onTap: _navigateToEditProfile,
+              ),
+              SizedBox(height: 15),
+              _buildMenuButton(
+                icon: Icons.link,
+                text: '사용자 연결',
+                onTap: _navigateToLinkUser,
+              ),
+              SizedBox(height: 15),
+              _buildMenuButton(
+                icon: Icons.help_outline,
+                text: '문의사항 작성',
+                onTap: _navigateToContactUs,
+              ),
+              Spacer(),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: ElevatedButton.icon(
                   onPressed: _signOut,
-                  child: Text('Logout'),
+                  icon: Icon(Icons.logout),
+                  label: Text('로그아웃'),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white, backgroundColor: Color(0xFFFDBEBE),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  ),
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuButton({
+    required IconData icon,
+    required String text,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: Color(0xFFFDBEBE), width: 2.0),
+          borderRadius: BorderRadius.circular(10.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 5,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 28,
+              color: Color(0xFFFDBEBE),
+            ),
+            SizedBox(width: 15),
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+            Spacer(),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 20,
+              color: Colors.grey,
             ),
           ],
         ),

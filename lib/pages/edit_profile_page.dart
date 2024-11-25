@@ -78,12 +78,41 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String labelText,
+    VoidCallback? onTap,
+  }) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        filled: true,
+        fillColor: Colors.pink.shade50,
+      ),
+      readOnly: onTap != null,
+      onTap: onTap,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('내 정보 수정'),
+        title: Text(
+          '내 정보 수정',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Color(0xFFFDBEBE),
+        iconTheme: IconThemeData(color: Colors.black),
       ),
+      backgroundColor: Colors.white,
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : Padding(
@@ -98,14 +127,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     ),
                     SizedBox(height: 10),
                   ],
-                  TextField(
+                  _buildTextField(
                     controller: _nicknameController,
-                    decoration: InputDecoration(labelText: '닉네임'),
+                    labelText: '닉네임',
                   ),
                   SizedBox(height: 20),
-                  TextField(
+                  _buildTextField(
                     controller: _birthdateController,
-                    decoration: InputDecoration(labelText: '생년월일 (yyyy-MM-dd)'),
+                    labelText: '생년월일 (yyyy-MM-dd)',
                     onTap: () async {
                       DateTime? date = await showDatePicker(
                         context: context,
@@ -119,9 +148,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     },
                   ),
                   SizedBox(height: 20),
-                  TextField(
-                    controller: _selectedDateController, // 처음 만난 날 필드
-                    decoration: InputDecoration(labelText: '처음 만난 날 (yyyy-MM-dd)'),
+                  _buildTextField(
+                    controller: _selectedDateController,
+                    labelText: '처음 만난 날 (yyyy-MM-dd)',
                     onTap: () async {
                       DateTime? date = await showDatePicker(
                         context: context,
@@ -134,10 +163,26 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       }
                     },
                   ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _saveUserData,
-                    child: Text('저장'),
+                  SizedBox(height: 30),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: _saveUserData,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFFDBEBE),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      ),
+                      child: Text(
+                        '저장',
+                        style: TextStyle(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),

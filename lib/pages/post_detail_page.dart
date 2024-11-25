@@ -18,13 +18,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
   String? _errorMessage;
   bool _isLoading = false;
 
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
     super.initState();
     _initializeNotifications();
-    _listenForComments();
+    _incrementViewCount(); // 조회수 증가
   }
 
   void _initializeNotifications() {
@@ -34,212 +35,277 @@ class _PostDetailPageState extends State<PostDetailPage> {
     flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
-  void _listenForComments() {
-    FirebaseFirestore.instance
+Future<void> _showDeleteConfirmationDialog(BuildContext context) async {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        title: Text('게시글 삭제'),
+        content: Text('정말로 이 게시글을 삭제하시겠습니까?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+            },
+            child: Text('취소'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                // 다이얼로그 먼저 닫기
+                Navigator.of(dialogContext).pop();
+                
+                // 게시글 삭제
+                await FirebaseFirestore.instance
+                    .collection('posts')
+                    .doc(widget.postId)
+                    .delete();
+
+                if (context.mounted) {
+                  // 게시글 목록으로 돌아가면서 새로고침을 위한 결과값 전달
+                  Navigator.of(context).pop(true); // true를 반환하여 삭제 완료를 알림
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  _showErrorDialog('게시글 삭제 중 오류가 발생���습니다: $e');
+                }
+              }
+            },
+            child: Text('삭제'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+Future<void> _incrementViewCount() async {
+  try {
+    await FirebaseFirestore.instance
         .collection('posts')
         .doc(widget.postId)
-        .collection('comments')
-        .snapshots()
-        .listen((snapshot) {
-      if (snapshot.docChanges.isNotEmpty) {
-        for (var change in snapshot.docChanges) {
-          if (change.type == DocumentChangeType.added) {
-            _sendNotification("새 댓글이 작성되었습니다", change.doc['content']);
-          }
-        }
-      }
-    });
+        .update({'viewCount': FieldValue.increment(1)});
+  } catch (e) {
+    print('Error incrementing view count: $e');
   }
+}
 
-  Future<void> _sendNotification(String title, String body) async {
-    const NotificationDetails notificationDetails = NotificationDetails(
-      android: AndroidNotificationDetails(
-        'channel_id',
-        'channel_name',
-        channelDescription: 'channel_description',
-        importance: Importance.max,
-        priority: Priority.high,
-      ),
-    );
-    await flutterLocalNotificationsPlugin.show(0, title, body, notificationDetails);
-  }
-
-  Future<void> _deletePost(BuildContext context) async {
-    try {
-      await FirebaseFirestore.instance.collection('posts').doc(widget.postId).delete();
-      Navigator.pop(context);
-    } catch (e) {
-      _showErrorDialog('게시글 삭제 중 오류가 발생했습니다: $e');
-    }
-  }
-
-  Future<void> _addComment() async {
-    if (_commentController.text.trim().isEmpty) {
-      setState(() {
-        _errorMessage = '댓글 내용을 입력해주세요.';
-      });
-      return;
-    }
-
+Future<void> _addComment() async {
+  if (_commentController.text.trim().isEmpty) {
     setState(() {
-      _isLoading = true;
-      _errorMessage = null;
+      _errorMessage = '댓글 내용을 입력해주세요.';
     });
-
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        await FirebaseFirestore.instance
-            .collection('posts')
-            .doc(widget.postId)
-            .collection('comments')
-            .add({
-          'content': _commentController.text.trim(),
-          'author': user.displayName ?? '익명',
-          'userId': user.uid,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-        _commentController.clear();
-      }
-    } catch (e) {
-      _showErrorDialog('댓글 작성 중 오류가 발생했습니다: ${e.toString()}');
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    return;
   }
 
-  Future<void> _deleteComment(String commentId) async {
-    try {
+  setState(() {
+    _isLoading = true;
+    _errorMessage = null;
+  });
+
+  try {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
       await FirebaseFirestore.instance
           .collection('posts')
           .doc(widget.postId)
           .collection('comments')
-          .doc(commentId)
-          .delete();
-    } catch (e) {
-      _showErrorDialog('댓글 삭제 중 오류가 발생했습니다: $e');
+          .add({
+        'content': _commentController.text.trim(),
+        'author': user.displayName ?? '익명',
+        'userId': user.uid,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      _commentController.clear();
     }
+  } catch (e) {
+    _showErrorDialog('댓글 작성 중 오류�� 발생했습니다: ${e.toString()}');
+  } finally {
+    setState(() {
+      _isLoading = false;
+    });
   }
+}
 
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('오류'),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('확인'),
-            ),
-          ],
-        );
-      },
-    );
+Future<void> _deleteComment(String commentId) async {
+  try {
+    await FirebaseFirestore.instance
+        .collection('posts')
+        .doc(widget.postId)
+        .collection('comments')
+        .doc(commentId)
+        .delete();
+  } catch (e) {
+    _showErrorDialog('댓글 삭제 중 오류가 발생했습니다: $e');
   }
+}
 
-  @override
-  Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+void _showErrorDialog(String message) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text('오류'),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('확인'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('게시글 상세'),
+@override
+Widget build(BuildContext context) {
+  final user = FirebaseAuth.instance.currentUser;
+
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(
+        '게시글 상세',
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
       ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('posts').doc(widget.postId).snapshots(),
-        builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || !snapshot.data!.exists) {
-            return Center(child: Text('게시글을 불러오는 중 오류가 발생했습니다.'));
-          }
+      backgroundColor: Color(0xFFFDBEBE),
+      iconTheme: IconThemeData(color: Colors.black),
+    ),
+    body: StreamBuilder(
+      stream: FirebaseFirestore.instance.collection('posts').doc(widget.postId).snapshots(),
+      builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return Center(child: Text('게시글을 불러오는 중 오류가 발생했습니다.'));
+        }
 
-          var post = snapshot.data!;
-          bool isAuthor = user != null && user.uid == post['userId'];
+        var post = snapshot.data!;
+        bool isAuthor = user != null && user.uid == post['userId'];
 
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(post['title'], style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                SizedBox(height: 10),
-                Text('작성자: ${post['nickname']}'),
-                SizedBox(height: 20),
-                Text(post['content']),
-                SizedBox(height: 20),
-                if (isAuthor)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => EditPostPage(postId: widget.postId)),
-                          );
-                        },
-                        child: Text('수정'),
-                      ),
-                      SizedBox(width: 10),
-                      ElevatedButton(
-                        onPressed: () => _deletePost(context),
-                        child: Text('삭제'),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                      ),
-                    ],
-                  ),
-                Divider(height: 40),
-                Text('댓글', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                if (_errorMessage != null) ...[
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 게시글 제목
+              Text(
+                post['title'],
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              SizedBox(height: 10),
+              // 작성자, 작성 시간, 조회수
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
                   Text(
-                    _errorMessage!,
-                    style: TextStyle(color: Colors.red),
+                    '작성자: ${post['nickname']}',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
                   ),
-                  SizedBox(height: 10),
+                  Text(
+                    '조회수: ${post['viewCount'] ?? 0}',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  ),
                 ],
-                TextField(
-                  controller: _commentController,
-                  decoration: InputDecoration(
-                    labelText: '댓글 입력',
-                    border: OutlineInputBorder(),
-                  ),
+              ),
+              SizedBox(height: 20),
+              // 게시글 내용
+              Text(
+                post['content'],
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black87,
+                  height: 1.5,
                 ),
-                SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _addComment,
-                  child: _isLoading ? CircularProgressIndicator() : Text('댓글 작성'),
+              ),
+              SizedBox(height: 20),
+              if (isAuthor)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => EditPostPage(postId: widget.postId)),
+                        );
+                      },
+                      child: Text('수정'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFFDBEBE),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: () {
+                        _showDeleteConfirmationDialog(context);
+                      },
+                      child: Text('삭제'),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    ),
+                  ],
                 ),
-                Expanded(
-                  child: StreamBuilder(
-                    stream: FirebaseFirestore.instance
-                        .collection('posts')
-                        .doc(widget.postId)
-                        .collection('comments')
-                        .orderBy('createdAt', descending: false)
-                        .snapshots(),
-                    builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      }
-                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                        return Center(child: Text('댓글이 없습니다.'));
-                      }
+              Divider(height: 40, thickness: 1.0, color: Colors.grey[300]),
+              Text('댓글', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              SizedBox(height: 10),
+              TextField(
+                controller: _commentController,
+                decoration: InputDecoration(
+                  labelText: '댓글 입력',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _addComment,
+                child: _isLoading ? CircularProgressIndicator() : Text('댓글 작성'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFFDBEBE),
+                ),
+              ),
+              Expanded(
+                child: StreamBuilder(
+                  stream: FirebaseFirestore.instance
+                      .collection('posts')
+                      .doc(widget.postId)
+                      .collection('comments')
+                      .orderBy('createdAt', descending: false)
+                      .snapshots(),
+                  builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    }
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return Center(child: Text('댓글이 없습니다.'));
+                    }
 
-                      return ListView.builder(
-                        itemCount: snapshot.data!.docs.length,
-                        itemBuilder: (context, index) {
-                          var comment = snapshot.data!.docs[index];
-                          bool isCommentAuthor = user != null && user.uid == comment['userId'];
+                    return ListView.builder(
+                      itemCount: snapshot.data!.docs.length,
+                      itemBuilder: (context, index) {
+                        var comment = snapshot.data!.docs[index];
+                        bool isCommentAuthor = user != null && user.uid == comment['userId'];
 
-                          return ListTile(
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8.0),
+                          elevation: 2.0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          child: ListTile(
                             title: Text(comment['author']),
                             subtitle: Text(comment['content']),
                             trailing: isCommentAuthor
@@ -248,17 +314,18 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                     onPressed: () => _deleteComment(comment.id),
                                   )
                                 : null,
-                          );
-                        },
-                      );
-                    },
-                  ),
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
+              ),
+            ],
+          ),
+        );
+      },
+    ),
+  );
+}
 }

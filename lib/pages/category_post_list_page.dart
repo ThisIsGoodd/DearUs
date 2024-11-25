@@ -1,98 +1,232 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import 'package:last_dear_us/pages/post_detail_page.dart';
 import 'package:last_dear_us/pages/new_post_page.dart';
 
-class CategoryPostListPage extends StatelessWidget {
+class CategoryPostListPage extends StatefulWidget {
   final String category;
 
   CategoryPostListPage({required this.category});
+
+  @override
+  _CategoryPostListPageState createState() => _CategoryPostListPageState();
+}
+
+class _CategoryPostListPageState extends State<CategoryPostListPage> {
+  static const int pageSize = 10; // 한 페이지에 표시할 게시글 수
+  int currentPage = 0; // 현재 페이지
+  List<DocumentSnapshot> _posts = []; // 현재 페이지의 게시글
+  bool _isLoading = false;
+  int totalPages = 1; // 전체 페이지 수 (초기값은 1)
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPosts();
+  }
+
+  Future<void> _loadPosts() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('posts')
+          .where('category', isEqualTo: widget.category)
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      final allDocuments = querySnapshot.docs;
+      setState(() {
+        totalPages = (allDocuments.length / pageSize).ceil(); // 전체 페이지 계산
+        _posts = allDocuments.skip(currentPage * pageSize).take(pageSize).toList(); // 현재 페이지 데이터
+      });
+    } catch (e) {
+      print('Error loading posts: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _changePage(int pageIndex) {
+    if (pageIndex >= 0 && pageIndex < totalPages) {
+      setState(() {
+        currentPage = pageIndex;
+        _loadPosts();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '$category 게시판',
+          '${widget.category} 게시판',
           style: TextStyle(
-            color: Color(0xFFFDBEBE), // 제목 텍스트 색상 변경
-            fontWeight: FontWeight.bold, // 글자 강조
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: true, // 제목을 가운데 정렬
-        backgroundColor: Colors.white, // AppBar 배경색 흰색
-        elevation: 1.0, // AppBar 그림자 효과
-        iconTheme: IconThemeData(color: Colors.black), // 뒤로가기 버튼 아이콘 색상
+        centerTitle: true,
+        backgroundColor: Color(0xFFFDBEBE),
+        elevation: 1.0,
+        iconTheme: IconThemeData(color: Colors.black),
       ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance
-            .collection('posts')
-            .where('category', isEqualTo: category)
-            .orderBy('createdAt', descending: true)
-            .snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          // 로딩 상태 처리
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
+      body: Column(
+        children: [
+          Expanded(
+            child: _isLoading
+                ? Center(child: CircularProgressIndicator())
+                : _posts.isEmpty
+                    ? Center(
+                        child: Text(
+                          '게시글이 없습니다.',
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16.0),
+                        itemCount: _posts.length,
+                        itemBuilder: (context, index) {
+                          var doc = _posts[index];
 
-          // 게시글이 없을 경우 처리
-          if (!snapshot.hasData || snapshot.data == null || snapshot.data!.docs.isEmpty) {
-            return Center(child: Text('아직 게시글이 없습니다.'));
-          }
-
-          // 게시글 리스트 출력
-          return ListView.builder(
-            padding: const EdgeInsets.all(16.0), // 리스트 전체 패딩 추가
-            itemCount: snapshot.data!.docs.length,
-            itemBuilder: (context, index) {
-              var doc = snapshot.data!.docs[index];
-
-              return Card(
-                margin: const EdgeInsets.only(bottom: 16.0), // 카드 간 간격 추가
-                elevation: 2.0, // 카드 그림자
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0), // 카드 모서리 둥글게
-                ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(16.0), // 카드 내부 여백
-                  title: Text(
-                    doc['title'], // 게시글 제목
-                    style: TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: Text(
-                    '작성자: ${doc['nickname']}', // 작성자 닉네임 출력
-                    style: TextStyle(fontSize: 14.0, color: Colors.grey[600]),
-                  ),
-                  onTap: () {
-                    // 게시글 상세 페이지로 이동
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PostDetailPage(postId: doc.id),
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PostDetailPage(postId: doc.id),
+                                ),
+                              );
+                            },
+                            child: Card(
+                              margin: const EdgeInsets.only(bottom: 16.0),
+                              elevation: 3.0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.0),
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.all(16.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border.all(color: Color(0xFFFDBEBE), width: 2.0),
+                                  borderRadius: BorderRadius.circular(12.0),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // 제목
+                                    Text(
+                                      doc['title'],
+                                      style: TextStyle(
+                                        fontSize: 18.0,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    SizedBox(height: 8.0),
+                                    // 내용
+                                    Text(
+                                      doc['content'],
+                                      maxLines: 2, // 최대 2줄로 표시
+                                      overflow: TextOverflow.ellipsis, // 내용이 길 경우 ...으로 표시
+                                      style: TextStyle(
+                                        fontSize: 14.0,
+                                        color: Colors.grey[800],
+                                      ),
+                                    ),
+                                    SizedBox(height: 12.0),
+                                    // 작성자, 작성시간, 조회수
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          '작성자: ${doc['nickname']}',
+                                          style: TextStyle(
+                                            fontSize: 12.0,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                        SizedBox(width: 16.0),
+                                        Text(
+                                          DateFormat('yyyy.MM.dd HH:mm').format(doc['createdAt'].toDate()),
+                                          style: TextStyle(
+                                            fontSize: 12.0,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                        SizedBox(width: 16.0),
+                                        Text(
+                                          '조회수: ${doc['viewCount'] ?? 0}',
+                                          style: TextStyle(
+                                            fontSize: 12.0,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
-              );
-            },
-          );
-        },
+          ),
+          if (totalPages > 1) _buildPaginationControls(), // 페이지네이션 컨트롤
+        ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // 새 게시글 작성 페이지로 이동
-          Navigator.push(
+        onPressed: () async {
+          await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => NewPostPage(category: category),
+              builder: (context) => NewPostPage(category: widget.category),
             ),
           );
+          _loadPosts(); // 게시글 작성 후 새로고침
         },
-        child: Icon(Icons.add), // 플러스 아이콘
+        backgroundColor: Color(0xFFFDBEBE),
+        child: Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildPaginationControls() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      color: Colors.white,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: currentPage > 0 ? () => _changePage(currentPage - 1) : null,
+          ),
+          Text(
+            '${currentPage + 1} / $totalPages',
+            style: TextStyle(
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.arrow_forward),
+            onPressed: currentPage < totalPages - 1
+                ? () => _changePage(currentPage + 1)
+                : null,
+          ),
+        ],
       ),
     );
   }

@@ -1,4 +1,3 @@
-// ContactUsPage.dart: 문의사항 작성 페이지
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -47,8 +46,17 @@ class _ContactUsPageState extends State<ContactUsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('문의사항 작성'),
+        title: Text(
+          '문의사항 작성',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Color(0xFFFDBEBE),
+        iconTheme: IconThemeData(color: Colors.black),
       ),
+      backgroundColor: Colors.white,
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : Padding(
@@ -67,14 +75,33 @@ class _ContactUsPageState extends State<ContactUsPage> {
                     controller: _messageController,
                     decoration: InputDecoration(
                       labelText: '문의사항을 입력하세요',
-                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.pink.shade50,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
                     ),
                     maxLines: 5,
                   ),
                   SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _sendMessage,
-                    child: Text('문의사항 전송'),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: _sendMessage,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFFDBEBE),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      ),
+                      child: Text(
+                        '문의사항 전송',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
