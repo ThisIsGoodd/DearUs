@@ -17,11 +17,73 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       _errorMessage = null;
     });
+
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      // Firebase Auth로 로그인 시도
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
+      // 이메일 인증 여부 확인
+      if (!userCredential.user!.emailVerified) {
+        setState(() {
+          _errorMessage = '이메일 인증이 완료되지 않았습니다. 이메일을 확인해주세요.';
+        });
+
+        // 이메일 인증 재발송 옵션 제공
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            title: Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.pink),
+                SizedBox(width: 8),
+                Text(
+                  '이메일 인증 필요',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                ),
+              ],
+            ),
+            content: Text(
+              '이메일 인증이 완료되지 않았습니다. 인증 이메일을 다시 보내시겠습니까?',
+              style: TextStyle(color: Colors.grey[800]),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  await userCredential.user!.sendEmailVerification();
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('인증 이메일이 다시 발송되었습니다.'),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: Colors.pink,
+                    ),
+                  );
+                },
+                child: Text(
+                  '다시 보내기',
+                  style: TextStyle(color: Colors.pink, fontWeight: FontWeight.bold),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  '취소',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      // 이메일 인증 완료된 경우 메인 페이지로 이동
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MainNavigation()),

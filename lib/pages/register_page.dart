@@ -46,10 +46,52 @@ class _RegisterPageState extends State<RegisterPage> {
 
       await _databaseService.saveUser(newUser);
 
-      // 회원가입 성공 시 로그인 페이지로 이동
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
+      // 이메일 인증 발송
+      await userCredential.user!.sendEmailVerification();
+
+      // 회원가입 성공 안내 및 이메일 인증 확인 요청
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: Colors.green),
+              SizedBox(width: 8),
+              Text(
+                '회원가입 성공!',
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+              ),
+            ],
+          ),
+          content: Text(
+            '이메일 인증 링크가 발송되었습니다.\n인증 후 로그인해주세요.',
+            style: TextStyle(color: Colors.grey[800]),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginPage()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.pink,
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: Text(
+                '로그인 페이지로 이동',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
       );
     } on FirebaseAuthException catch (e) {
       setState(() {

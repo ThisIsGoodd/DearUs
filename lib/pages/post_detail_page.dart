@@ -83,6 +83,66 @@ Future<void> _showDeleteConfirmationDialog(BuildContext context) async {
   );
 }
 
+Future<void> _showDeleteCommentConfirmationDialog(BuildContext context, String commentId) async {
+  showDialog(
+    context: context,
+    barrierDismissible: false, // 다이얼로그 외부 클릭 방지
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15), // 둥근 모서리
+        ),
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.red),
+            SizedBox(width: 8),
+            Text(
+              '댓글 삭제',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+            ),
+          ],
+        ),
+        content: Text(
+          '정말로 이 댓글을 삭제하시겠습니까?',
+          style: TextStyle(color: Colors.grey[800]),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop(); // 다이얼로그 닫기
+            },
+            child: Text(
+              '취소',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(dialogContext).pop(); // 다이얼로그 먼저 닫기
+              await _deleteComment(commentId); // 댓글 삭제 처리
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('댓글이 삭제되었습니다.'),
+                  backgroundColor: Colors.green,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            child: Text('삭제'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 Future<void> _incrementViewCount() async {
   try {
     await FirebaseFirestore.instance
@@ -311,7 +371,8 @@ Widget build(BuildContext context) {
                             trailing: isCommentAuthor
                                 ? IconButton(
                                     icon: Icon(Icons.delete),
-                                    onPressed: () => _deleteComment(comment.id),
+                                    onPressed: () =>
+                                      _showDeleteCommentConfirmationDialog(context, comment.id),
                                   )
                                 : null,
                           ),
