@@ -1,6 +1,6 @@
 // lib/services/database_service.dart
-// DatabaseService: Firestore 관련 서비스
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:last_dear_us/models/chat_model.dart';
 import 'package:last_dear_us/models/event_model.dart';
 import 'package:last_dear_us/models/post_model.dart';
 import 'package:last_dear_us/models/user_model.dart';
@@ -45,6 +45,30 @@ class DatabaseService {
     } catch (e) {
       print('Error checking nickname: $e');
       return false;
+    }
+  }
+  // 채팅 메시지 추가
+  Future<void> addChatMessage(ChatMessage message, String chatId) async {
+    try {
+      await _db.collection('chats/$chatId/messages').doc(message.id).set(message.toMap());
+    } catch (e) {
+      print('[DEBUG] Error adding message: $e');
+    }
+  }
+
+  // 채팅 메시지 가져오기
+  Stream<List<ChatMessage>> getChatMessages(String chatId) {
+    try {
+      return _db
+          .collection('chats/$chatId/messages')
+          .orderBy('timestamp', descending: false)
+          .snapshots()
+          .map((snapshot) => snapshot.docs
+              .map((doc) => ChatMessage.fromMap(doc.data() as Map<String, dynamic>))
+              .toList());
+    } catch (e) {
+      print('[DEBUG] Error fetching messages: $e');
+      return Stream.empty();
     }
   }
 }

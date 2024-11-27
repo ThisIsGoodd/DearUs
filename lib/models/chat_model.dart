@@ -1,4 +1,3 @@
-// lib/models/chat_model.dart
 class ChatMessage {
   final String id;
   final String senderId;
@@ -14,7 +13,7 @@ class ChatMessage {
     required this.timestamp,
   });
 
-  // Convert a ChatMessage into a Map for Firestore
+  // Firestore에 저장할 때 변환
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -25,7 +24,7 @@ class ChatMessage {
     };
   }
 
-  // Create a ChatMessage from Firestore Map
+  // Firestore에서 데이터를 읽을 때 변환
   factory ChatMessage.fromMap(Map<String, dynamic> map) {
     return ChatMessage(
       id: map['id'] ?? '',
