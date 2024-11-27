@@ -76,7 +76,7 @@ class _ContactUsPageState extends State<ContactUsPage> {
                     decoration: InputDecoration(
                       labelText: '문의사항을 입력하세요',
                       filled: true,
-                      fillColor: Colors.pink.shade50,
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12.0),
                       ),

@@ -102,6 +102,7 @@ class _MainNavigationState extends State<MainNavigation> {
 
   String? connectedUserUid;
   String? connectedUserNickname;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -113,76 +114,110 @@ class _MainNavigationState extends State<MainNavigation> {
     final User? currentUser = FirebaseAuth.instance.currentUser;
 
     if (currentUser != null) {
-      final DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(currentUser.uid)
-          .get();
+      try {
+        final DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .get();
 
-      if (userDoc.exists) {
-        final String uid = userDoc['connectedUserUid'] ?? '';
+        if (userDoc.exists) {
+          // 안전하게 데이터 접근
+          final Map<String, dynamic>? userData =
+              userDoc.data() as Map<String, dynamic>?; // 명시적 캐스팅
+          final String? uid = userData?['connectedUserUid']; // 필드가 없으면 null 반환
 
-        if (uid.isNotEmpty) {
-          final DocumentSnapshot connectedUserDoc =
-              await FirebaseFirestore.instance.collection('users').doc(uid).get();
+          if (uid != null && uid.isNotEmpty) {
+            final DocumentSnapshot connectedUserDoc = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(uid)
+                .get();
 
-          if (connectedUserDoc.exists) {
-            setState(() {
-              connectedUserUid = uid;
-              connectedUserNickname = connectedUserDoc['nickname'] ?? 'Unknown'; // 연결된 사용자 닉네임
-            });
+            if (connectedUserDoc.exists) {
+              final Map<String, dynamic>? connectedUserData =
+                  connectedUserDoc.data() as Map<String, dynamic>?; // 명시적 캐스팅
+
+              setState(() {
+                connectedUserUid = uid;
+                connectedUserNickname = connectedUserData?['nickname'] ?? 'Unknown'; // 연결된 사용자 닉네임
+              });
+            }
           }
         }
+      } catch (e) {
+        setState(() {
+          // _errorMessage 선언 및 할당
+          _errorMessage = '사용자 정보를 가져오는 중 오류가 발생했습니다: $e';
+        });
       }
     }
   }
 
+  
+
+
   @override
-  Widget build(BuildContext context) {
-    List<Widget> _pages = [
-      HomePage(),
-      SharedCalendarPage(),
-      (connectedUserUid != null && connectedUserNickname != null)
-          ? ChatPage(
-              connectedUserUid: connectedUserUid!,
-              connectedUserNickname: connectedUserNickname!,
-            )
-          : Center(child: CircularProgressIndicator()),
-      ProfilePage(),
-    ];
+Widget build(BuildContext context) {
+  List<Widget> _pages = [
+    HomePage(),
+    SharedCalendarPage(),
+    (connectedUserUid != null && connectedUserNickname != null)
+        ? ChatPage(
+            connectedUserUid: connectedUserUid!,
+            connectedUserNickname: connectedUserNickname!,
+          )
+        : Center(child: CircularProgressIndicator()),
+    ProfilePage(),
+  ];
 
-    void _onItemTapped(int index) {
-      setState(() {
-        _selectedIndex = index;
-      });
-    }
-
-    return Scaffold(
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Calendar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: 'Chat',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        backgroundColor: Colors.pink.shade100,
-        selectedItemColor: const Color.fromARGB(255, 172, 14, 77),
-        unselectedItemColor: const Color.fromARGB(255, 240, 171, 194),
-      ),
-    );
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
+
+  return Scaffold(
+    body: Column(
+      children: [
+        // 에러 메시지 표시
+        if (_errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              _errorMessage!,
+              style: TextStyle(color: Colors.red, fontSize: 14),
+            ),
+          ),
+        Expanded(
+          child: _pages[_selectedIndex],
+        ),
+      ],
+    ),
+    bottomNavigationBar: BottomNavigationBar(
+      items: const <BottomNavigationBarItem>[
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.calendar_today),
+          label: 'Calendar',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.chat),
+          label: 'Chat',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person),
+          label: 'Profile',
+        ),
+      ],
+      currentIndex: _selectedIndex,
+      onTap: _onItemTapped,
+      backgroundColor: Colors.pink.shade100,
+      selectedItemColor: const Color.fromARGB(255, 172, 14, 77),
+      unselectedItemColor: const Color.fromARGB(255, 240, 171, 194),
+    ),
+  );
+}
+
 }
