@@ -91,7 +91,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           borderRadius: BorderRadius.circular(12.0),
         ),
         filled: true,
-        fillColor: Colors.pink.shade50,
+        fillColor: Colors.white,
       ),
       readOnly: onTap != null,
       onTap: onTap,

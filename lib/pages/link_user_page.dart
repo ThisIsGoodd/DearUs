@@ -179,7 +179,7 @@ class _LinkUserPageState extends State<LinkUserPage> {
               padding: const EdgeInsets.all(16.0),
               child: hasConnectedUser
                   ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
                         if (_errorMessage != null) ...[
                           Text(
@@ -190,7 +190,7 @@ class _LinkUserPageState extends State<LinkUserPage> {
                         ],
                         Text(
                           '연결된 사용자: $_connectedUserNickname',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 20),
                         Center(
@@ -212,7 +212,7 @@ class _LinkUserPageState extends State<LinkUserPage> {
                       ],
                     )
                   : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
                         if (_errorMessage != null) ...[
                           Text(
@@ -240,8 +240,6 @@ class _LinkUserPageState extends State<LinkUserPage> {
                           readOnly: true,
                           decoration: InputDecoration(
                             labelText: '내 초대 코드',
-                            filled: true,
-                            fillColor: Colors.pink.shade50,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12.0),
                             ),
@@ -251,8 +249,6 @@ class _LinkUserPageState extends State<LinkUserPage> {
                         TextField(
                           decoration: InputDecoration(
                             labelText: '연결할 사용자의 초대 코드 입력',
-                            filled: true,
-                            fillColor: Colors.pink.shade50,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12.0),
                             ),
