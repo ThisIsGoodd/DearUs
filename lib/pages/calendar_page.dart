@@ -137,7 +137,7 @@ class _SharedCalendarPageState extends State<SharedCalendarPage> {
   Future<void> _editEvent(Appointment appointment) async {
     if (currentUser != null && appointment.notes != null) {
       final eventId = appointment.notes!.split('|||')[0];
-      var description = appointment.notes!.split('|||')[1];
+      String description = appointment.notes!.split('|||')[1];
       String title = appointment.subject;
       DateTime startTime = appointment.startTime;
       DateTime endTime = appointment.endTime;
@@ -145,115 +145,231 @@ class _SharedCalendarPageState extends State<SharedCalendarPage> {
       showDialog(
         context: context,
         builder: (context) {
-          return AlertDialog(
-            title: Text('일정 수정'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: TextEditingController(text: title),
-                  decoration: InputDecoration(labelText: '일정 제목'),
-                  onChanged: (value) {
-                    title = value;
-                  },
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  controller: TextEditingController(text: description),
-                  decoration: InputDecoration(labelText: '일정 내용'),
-                  onChanged: (value) {
-                    description = value;
-                  },
-                ),
-                SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () async {
-                    DateTime? picked = await showDatePicker(
-                      context: context,
-                      initialDate: startTime,
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2100),
-                    );
-                    if (picked != null) {
-                      TimeOfDay? time = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.fromDateTime(startTime),
-                      );
-                      if (time != null) {
-                        setState(() {
-                          startTime = DateTime(picked.year, picked.month, picked.day, time.hour, time.minute);
-                        });
-                      }
-                    }
-                  },
-                  child: Text('시작 시간: ${startTime.year}-${startTime.month}-${startTime.day} ${startTime.hour}:${startTime.minute}'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    DateTime? picked = await showDatePicker(
-                      context: context,
-                      initialDate: endTime,
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2100),
-                    );
-                    if (picked != null) {
-                      TimeOfDay? time = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.fromDateTime(endTime),
-                      );
-                      if (time != null) {
-                        setState(() {
-                          endTime = DateTime(picked.year, picked.month, picked.day, time.hour, time.minute);
-                        });
-                      }
-                    }
-                  },
-                  child: Text('종료 시간: ${endTime.year}-${endTime.month}-${endTime.day} ${endTime.hour}:${endTime.minute}'),
-                ),
-              ],
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20), // 모서리 둥글게
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text('취소'),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 제목
+                    Text(
+                      '일정 수정',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFFDBEBE), // 메인 색상
+                      ),
+                    ),
+                    SizedBox(height: 16),
+
+                    // 일정 제목 입력 필드
+                    TextField(
+                      controller: TextEditingController(text: title),
+                      decoration: InputDecoration(
+                        labelText: '일정 제목',
+                        labelStyle: TextStyle(color: Color(0xFFFDBEBE)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white, // 배경을 흰색으로 설정
+                      ),
+                      onChanged: (value) => title = value,
+                    ),
+                    SizedBox(height: 16),
+
+                    // 일정 내용 입력 필드
+                    TextField(
+                      controller: TextEditingController(text: description),
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        labelText: '일정 내용',
+                        labelStyle: TextStyle(color: Color(0xFFFDBEBE)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white, // 배경을 흰색으로 설정
+                      ),
+                      onChanged: (value) => description = value,
+                    ),
+                    SizedBox(height: 16),
+
+                    // 시간 선택
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // 시작 시간
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '시작 시간',
+                                style: TextStyle(fontSize: 14, color: Colors.grey),
+                              ),
+                              SizedBox(height: 8),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  DateTime? pickedDate = await showDatePicker(
+                                    context: context,
+                                    initialDate: startTime,
+                                    firstDate: DateTime(2000),
+                                    lastDate: DateTime(2100),
+                                  );
+                                  if (pickedDate != null) {
+                                    TimeOfDay? pickedTime = await showTimePicker(
+                                      context: context,
+                                      initialTime:
+                                          TimeOfDay.fromDateTime(startTime),
+                                    );
+                                    if (pickedTime != null) {
+                                      setState(() {
+                                        startTime = DateTime(
+                                          pickedDate.year,
+                                          pickedDate.month,
+                                          pickedDate.day,
+                                          pickedTime.hour,
+                                          pickedTime.minute,
+                                        );
+                                      });
+                                    }
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  foregroundColor: Colors.black,
+                                  backgroundColor: Colors.white, // 버튼 텍스트 색상
+                                  side: BorderSide(color: Color(0xFFFDBEBE)), // 테두리 색상
+                                ),
+                                child: Text(
+                                  '${startTime.year}-${startTime.month.toString().padLeft(2, '0')}-${startTime.day.toString().padLeft(2, '0')} ${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        // 종료 시간
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '종료 시간',
+                                style: TextStyle(fontSize: 14, color: Colors.grey),
+                              ),
+                              SizedBox(height: 8),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  DateTime? pickedDate = await showDatePicker(
+                                    context: context,
+                                    initialDate: endTime,
+                                    firstDate: DateTime(2000),
+                                    lastDate: DateTime(2100),
+                                  );
+                                  if (pickedDate != null) {
+                                    TimeOfDay? pickedTime = await showTimePicker(
+                                      context: context,
+                                      initialTime:
+                                          TimeOfDay.fromDateTime(endTime),
+                                    );
+                                    if (pickedTime != null) {
+                                      setState(() {
+                                        endTime = DateTime(
+                                          pickedDate.year,
+                                          pickedDate.month,
+                                          pickedDate.day,
+                                          pickedTime.hour,
+                                          pickedTime.minute,
+                                        );
+                                      });
+                                    }
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  foregroundColor: Colors.black,
+                                  backgroundColor: Colors.white, // 버튼 텍스트 색상
+                                  side: BorderSide(color: Color(0xFFFDBEBE)), // 테두리 색상
+                                ),
+                                child: Text(
+                                  '${endTime.year}-${endTime.month.toString().padLeft(2, '0')}-${endTime.day.toString().padLeft(2, '0')} ${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+
+                    // 액션 버튼 (취소, 저장)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(
+                            '취소',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            Navigator.of(context).pop();
+                            if (currentUser != null &&
+                                appointment.notes != null) {
+                              try {
+                                final snapshot = await FirebaseFirestore.instance
+                                    .collection('events')
+                                    .doc(eventId)
+                                    .get();
+
+                                if (snapshot.exists &&
+                                    snapshot.data()?['userId'] ==
+                                        currentUser!.uid) {
+                                  await FirebaseFirestore.instance
+                                      .collection('events')
+                                      .doc(eventId)
+                                      .update({
+                                    'title': title,
+                                    'startTime': Timestamp.fromDate(startTime),
+                                    'endTime': Timestamp.fromDate(endTime),
+                                    'description': description,
+                                  });
+                                  _fetchAppointments();
+                                } else {
+                                  _showErrorDialog('수정 권한이 없습니다.');
+                                }
+                              } catch (e) {
+                                _showErrorDialog('수정 중 오류가 발생했습니다: $e');
+                              }
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Color(0xFFFDBEBE), // 버튼 색상
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12), // 버튼 둥글게
+                            ),
+                          ),
+                          child: Text('저장'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              ElevatedButton(
-                onPressed: () async {
-                  Navigator.of(context).pop();
-                  if (currentUser != null && appointment.notes != null) {
-                    try {
-                      final snapshot = await FirebaseFirestore.instance
-                          .collection('events')
-                          .doc(eventId)
-                          .get();
-                          
-                      if (snapshot.exists && snapshot.data()?['userId'] == currentUser!.uid) {
-                        await FirebaseFirestore.instance
-                            .collection('events')
-                            .doc(eventId)
-                            .update({
-                          'title': title,
-                          'startTime': Timestamp.fromDate(startTime),
-                          'endTime': Timestamp.fromDate(endTime),
-                          'description': description,
-                        });
-                        _fetchAppointments();
-                      } else {
-                        _showErrorDialog('수정 권한이 없습니다.');
-                      }
-                    } catch (e) {
-                      _showErrorDialog('수정 중 오류가 발생했습니다: $e');
-                    }
-                  }
-                },
-                child: Text('저장'),
-              ),
-            ],
+            ),
           );
         },
       );
     }
   }
+
 
   void _showErrorDialog(String message) {
     if (!mounted) return;
@@ -309,62 +425,158 @@ class _SharedCalendarPageState extends State<SharedCalendarPage> {
             showDialog(
               context: context,
               builder: (context) {
-                return AlertDialog(
-                  title: Text('일정 목록'),
-                  content: Container(
-                    width: double.maxFinite,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: selectedAppointments.length,
-                      itemBuilder: (context, index) {
-                        Appointment appointment = selectedAppointments[index];
-                        bool isAuthor = appointment.notes != null && appointment.color == Colors.blue;
-                        return ListTile(
-                          title: Text(appointment.subject),
-                          subtitle: Text(
-                            '${appointment.startTime.year}-${appointment.startTime.month.toString().padLeft(2, '0')}-${appointment.startTime.day.toString().padLeft(2, '0')} ${appointment.startTime.hour.toString().padLeft(2, '0')}:${appointment.startTime.minute.toString().padLeft(2, '0')} ~ ${appointment.endTime.hour.toString().padLeft(2, '0')}:${appointment.endTime.minute.toString().padLeft(2, '0')}\n${appointment.notes?.split('|||')[1] ?? ''}'
+                return Dialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20), // 모서리 둥글게
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 제목
+                        Text(
+                          '일정 목록',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFFDBEBE), // 메인 색상
                           ),
-                          trailing: isAuthor
-                              ? Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: Icon(Icons.edit),
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                        _editEvent(appointment);
-                                      },
+                        ),
+                        SizedBox(height: 16),
+
+                        // 일정 목록
+                        Container(
+                          width: double.maxFinite,
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: selectedAppointments.length,
+                            itemBuilder: (context, index) {
+                              Appointment appointment = selectedAppointments[index];
+                              bool isAuthor =
+                                  appointment.notes != null && appointment.color == Colors.blue;
+
+                              return Card(
+                                margin: EdgeInsets.symmetric(vertical: 6, horizontal: 0),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12), // 카드 둥글게
+                                ),
+                                elevation: 2, // 그림자 효과
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor:
+                                        isAuthor ? Color(0xFFFDBEBE) : Colors.green,
+                                    child: Icon(
+                                      isAuthor ? Icons.person : Icons.group,
+                                      color: Colors.white,
                                     ),
-                                    IconButton(
-                                      icon: Icon(Icons.delete),
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                        _deleteEvent(appointment);
-                                      },
-                                    ),
-                                  ],
-                                )
-                              : Icon(Icons.circle, color: Colors.pink, size: 10),
-                        );
-                      },
+                                  ),
+                                  title: Text(
+                                    appointment.subject,
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  subtitle: Text(
+                                    '${appointment.startTime.year}-${appointment.startTime.month.toString().padLeft(2, '0')}-${appointment.startTime.day.toString().padLeft(2, '0')} ${appointment.startTime.hour.toString().padLeft(2, '0')}:${appointment.startTime.minute.toString().padLeft(2, '0')} ~ ${appointment.endTime.hour.toString().padLeft(2, '0')}:${appointment.endTime.minute.toString().padLeft(2, '0')}\n${appointment.notes?.split('|||')[1] ?? ''}',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                  trailing: isAuthor
+                                      ? Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            IconButton(
+                                              icon: Icon(Icons.edit, color: Colors.blue),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                                _editEvent(appointment);
+                                              },
+                                            ),
+                                            IconButton(
+                                              icon: Icon(Icons.delete, color: Colors.red),
+                                              onPressed: () {
+                                                // 삭제 확인 팝업 표시
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    return AlertDialog(
+                                                      title: Text('삭제 확인'),
+                                                      content: Text('이 일정을 삭제하시겠습니까?'),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.of(context).pop(),
+                                                          child: Text(
+                                                            '취소',
+                                                            style: TextStyle(
+                                                                color: Colors.grey),
+                                                          ),
+                                                        ),
+                                                        ElevatedButton(
+                                                          onPressed: () {
+                                                            Navigator.of(context).pop();
+                                                            Navigator.of(context).pop();
+                                                            _deleteEvent(appointment);
+                                                          },
+                                                          style: ElevatedButton.styleFrom(
+                                                            foregroundColor: Colors.white,
+                                                            backgroundColor:
+                                                                Color(0xFFFDBEBE),
+                                                          ),
+                                                          child: Text('삭제'),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                            ),
+                                          ],
+                                        )
+                                      : Icon(
+                                          Icons.circle,
+                                          color: Colors.pink,
+                                          size: 10,
+                                        ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+
+                        // 닫기 및 일정 추가 버튼
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text(
+                                '닫기',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                _showAddEventDialog(details.date!);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                backgroundColor: Color(0xFFFDBEBE), // 메인 색상
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text('일정 추가'),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text('닫기'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        _showAddEventDialog(details.date!);
-                      },
-                      child: Text('일정 추가'),
-                    ),
-                  ],
                 );
               },
             );
+
+
           } else if (details.targetElement == CalendarElement.calendarCell) {
             // Allow adding new appointments by tapping on empty calendar cells
             _showAddEventDialog(details.date!);
@@ -378,126 +590,204 @@ class _SharedCalendarPageState extends State<SharedCalendarPage> {
     DateTime startTime = date;
     DateTime endTime = date.add(Duration(hours: 1));
     String title = '';
-    var description = '';
+    String description = '';
+    
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text('새 일정 추가'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: InputDecoration(
-                  labelText: '일정 제목',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  filled: true,
-                  fillColor: Colors.pink.shade50,  // 연한 핑크 배경
-                ),
-                onChanged: (value) => title = value,
-              ),
-              SizedBox(height: 10),
-              TextField(
-                decoration: InputDecoration(labelText: '일정 내용'),
-                onChanged: (value) {
-                  description = value;
-                },
-              ),
-              SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [                        
-                        Text('시작 시간'),
-                        ElevatedButton(
-                          onPressed: () async {
-                            DateTime? picked = await showDatePicker(
-                              context: context,
-                              initialDate: startTime,
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime(2100),
-                            );
-                            if (picked != null) {
-                              TimeOfDay? time = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.fromDateTime(startTime),
-                              );
-                              if (time != null) {
-                                setState(() {
-                                  startTime = DateTime(picked.year, picked.month, picked.day, time.hour, time.minute);
-                                });
-                              }
-                            }
-                          },
-                          child: Text('${startTime.year}-${startTime.month.toString().padLeft(2, '0')}-${startTime.day.toString().padLeft(2, '0')} ${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('종료 시간'),
-                        ElevatedButton(
-                          onPressed: () async {
-                            DateTime? picked = await showDatePicker(
-                              context: context,
-                              initialDate: endTime,
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime(2100),
-                            );
-                            if (picked != null) {
-                              TimeOfDay? time = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.fromDateTime(endTime),
-                              );
-                              if (time != null) {
-                                setState(() {
-                                  endTime = DateTime(picked.year, picked.month, picked.day, time.hour, time.minute);
-                                });
-                              }
-                            }
-                          },
-                          child: Text('${endTime.year}-${endTime.month.toString().padLeft(2, '0')}-${endTime.day.toString().padLeft(2, '0')} ${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}'),
-                        ),
-
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20), // 둥근 모서리
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('취소'),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 제목
+                Text(
+                  '새 일정 추가',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFFDBEBE), // 메인 색상
+                  ),
+                ),
+                SizedBox(height: 16),
+                
+                // 일정 제목 입력 필드
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: '일정 제목',
+                    labelStyle: TextStyle(color: Color(0xFFFDBEBE)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white, // 배경을 흰색으로 설정
+                  ),
+                  onChanged: (value) => title = value,
+                ),
+                SizedBox(height: 16),
+                
+                // 일정 내용 입력 필드
+                TextField(
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: '일정 내용',
+                    labelStyle: TextStyle(color: Color(0xFFFDBEBE)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white, // 배경을 흰색으로 설정
+                  ),
+                  onChanged: (value) => description = value,
+                ),
+                SizedBox(height: 16),
+
+                // 시간 선택 버튼
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // 시작 시간
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '시작 시간',
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                          SizedBox(height: 8),
+                          ElevatedButton(
+                            onPressed: () async {
+                              DateTime? pickedDate = await showDatePicker(
+                                context: context,
+                                initialDate: startTime,
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2100),
+                              );
+                              if (pickedDate != null) {
+                                TimeOfDay? pickedTime = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.fromDateTime(startTime),
+                                );
+                                if (pickedTime != null) {
+                                  setState(() {
+                                    startTime = DateTime(
+                                      pickedDate.year,
+                                      pickedDate.month,
+                                      pickedDate.day,
+                                      pickedTime.hour,
+                                      pickedTime.minute,
+                                    );
+                                  });
+                                }
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.black, backgroundColor: Colors.white, // 버튼 텍스트 색상
+                              side: BorderSide(color: Color(0xFFFDBEBE)), // 테두리 색상
+                            ),
+                            child: Text(
+                              '${startTime.year}-${startTime.month.toString().padLeft(2, '0')}-${startTime.day.toString().padLeft(2, '0')} ${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    // 종료 시간
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '종료 시간',
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                          SizedBox(height: 8),
+                          ElevatedButton(
+                            onPressed: () async {
+                              DateTime? pickedDate = await showDatePicker(
+                                context: context,
+                                initialDate: endTime,
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2100),
+                              );
+                              if (pickedDate != null) {
+                                TimeOfDay? pickedTime = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.fromDateTime(endTime),
+                                );
+                                if (pickedTime != null) {
+                                  setState(() {
+                                    endTime = DateTime(
+                                      pickedDate.year,
+                                      pickedDate.month,
+                                      pickedDate.day,
+                                      pickedTime.hour,
+                                      pickedTime.minute,
+                                    );
+                                  });
+                                }
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.black, backgroundColor: Colors.white, // 버튼 텍스트 색상
+                              side: BorderSide(color: Color(0xFFFDBEBE)), // 테두리 색상
+                            ),
+                            child: Text(
+                              '${endTime.year}-${endTime.month.toString().padLeft(2, '0')}-${endTime.day.toString().padLeft(2, '0')} ${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+
+                // 액션 버튼 (추가, 취소)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(
+                        '취소',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (title.isEmpty) {
+                          _showErrorDialog('일정 제목을 입력해주세요.');
+                          return;
+                        }
+                        Navigator.of(context).pop();
+                        final details = AppointmentDetails(
+                          title,
+                          startTime,
+                          endTime,
+                          description,
+                        );
+                        _addEvent(details);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white, backgroundColor: Color(0xFFFDBEBE), // 텍스트 색상
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12), // 버튼 둥글게
+                        ),
+                      ),
+                      child: Text('추가'),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            ElevatedButton(
-              onPressed: () {
-                if (title.isEmpty) {
-                  _showErrorDialog('일정 제목을 입력해주세요.');
-                  return;
-                }
-                Navigator.of(context).pop();
-                final details = AppointmentDetails(
-                  title,
-                  startTime,
-                  endTime,
-                  description
-                );
-                _addEvent(details);
-              },
-              child: Text('추가'),
-            ),
-          ],
+          ),
         );
       },
     );

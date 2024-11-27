@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:last_dear_us/main.dart';
 import 'package:last_dear_us/pages/register_page.dart';
-import 'package:last_dear_us/widgets/custom_button.dart';
-import 'package:last_dear_us/widgets/custom_text_field.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -53,40 +51,87 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Login'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            if (_errorMessage != null) ...[
-              Text(
-                _errorMessage!,
-                style: TextStyle(color: Colors.red),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(height: 80),
+              Center(
+                child: Column(
+                  children: [
+                    Image.asset(
+                      'assets/logo_pull.png', // 로고 이미지 경로
+                      height: 250,
+                    ),
+                    SizedBox(height: 16),
+                  ],
+                ),
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 40),
+              if (_errorMessage != null) ...[
+                Text(
+                  _errorMessage!,
+                  style: TextStyle(color: Colors.red, fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 10),
+              ],
+              TextField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  hintText: '이메일 입력',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                ),
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  hintText: '비밀번호 입력',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                ),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _signIn,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.pink,
+                  padding: EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  '계속하기',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              ),
+              SizedBox(height: 20),
+              Center(
+                child: TextButton(
+                  onPressed: _navigateToRegisterPage,
+                  child: Text(
+                    '계정이 없으신가요? 회원가입',
+                    style: TextStyle(
+                      color: Colors.pink,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
             ],
-            CustomTextField(
-              controller: _emailController,
-              label: 'Email',
-            ),
-            CustomTextField(
-              controller: _passwordController,
-              label: 'Password',
-              obscureText: true,
-            ),
-            SizedBox(height: 20),
-            CustomButton(
-              onPressed: _signIn,
-              text: 'Login',
-            ),
-            TextButton(
-              onPressed: _navigateToRegisterPage,
-              child: Text('Don\'t have an account? Register here'),
-            ),
-          ],
+          ),
         ),
       ),
     );
