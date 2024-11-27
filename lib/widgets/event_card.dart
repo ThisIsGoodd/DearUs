@@ -1,3 +1,4 @@
+// lib/widgets/event_card.dart
 // EventCard 위젯 정의
 import 'package:flutter/material.dart';
 import 'package:last_dear_us/models/event_model.dart';

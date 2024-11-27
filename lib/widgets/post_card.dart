@@ -1,3 +1,4 @@
+// lib/widgets/post_card.dart
 // PostCard 위젯 정의
 import 'package:flutter/material.dart';
 import 'package:last_dear_us/models/post_model.dart';

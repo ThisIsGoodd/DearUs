@@ -1,3 +1,4 @@
+// lib/pages/community_page.dart
 import 'package:flutter/material.dart';
 import 'package:last_dear_us/pages/category_post_list_page.dart';
 

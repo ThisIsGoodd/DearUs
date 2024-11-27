@@ -1,3 +1,4 @@
+// lib/models/connection_model.dart
 // connection_model.dart: 사용자 연결 모델
 import 'package:cloud_firestore/cloud_firestore.dart';
 

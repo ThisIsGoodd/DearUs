@@ -1,3 +1,4 @@
+// lib/services/database_service.dart
 // DatabaseService: Firestore 관련 서비스
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:last_dear_us/models/event_model.dart';

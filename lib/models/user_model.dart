@@ -1,3 +1,4 @@
+// lib/models/user_model.dart
 // user_model.dart: 사용자 정보 모델
 import 'package:cloud_firestore/cloud_firestore.dart';
 

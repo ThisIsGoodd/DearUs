@@ -1,3 +1,4 @@
+// lib/main.dart
 // Main.dart 파일: 앱의 진입점
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';

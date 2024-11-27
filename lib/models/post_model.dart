@@ -1,3 +1,4 @@
+// lib/models/post_model.dart
 // Post 모델 정의
 import 'package:cloud_firestore/cloud_firestore.dart';
 

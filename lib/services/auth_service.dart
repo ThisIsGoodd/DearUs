@@ -1,3 +1,4 @@
+// lib/services/auth_service.dart
 // AuthService: Firebase Auth 관련 서비스
 import 'package:firebase_auth/firebase_auth.dart';
 
