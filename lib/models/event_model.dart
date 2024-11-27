@@ -1,4 +1,4 @@
-// Event 모델 정의
+// lib/models/event_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EventModel {
