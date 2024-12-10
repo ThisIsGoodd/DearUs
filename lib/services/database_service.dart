@@ -1,4 +1,5 @@
-// lib/services/database_service.dart
+import 'dart:convert';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:last_dear_us/models/chat_model.dart';
 import 'package:last_dear_us/models/event_model.dart';
@@ -26,14 +27,46 @@ class DatabaseService {
     }
   }
 
-  // 게시글 추가
-  Future<void> addPost(PostModel post) async {
+  // 게시글 추가 (Base64 인코딩된 이미지 포함)
+  Future<void> addPost(PostModel post, {File? imageFile}) async {
     try {
-      await _db.collection('posts').doc(post.postId).set(post.toMap());
+      String? imageBase64;
+
+      // 이미지 인코딩 처리
+      if (imageFile != null) {
+        final bytes = await imageFile.readAsBytes();
+        imageBase64 = base64Encode(bytes); // Base64로 인코딩
+      }
+
+      // Firestore에 게시글 저장
+      await _db.collection('posts').doc(post.postId).set(post.toMap()..addAll({
+        'imageBase64': imageBase64, // Base64 인코딩된 이미지 추가
+      }));
     } catch (e) {
-      print(e.toString());
+      print('Error adding post: $e');
     }
   }
+
+  // 게시글 업데이트 (Base64 인코딩된 이미지 포함)
+  Future<void> updatePost(PostModel post, {File? imageFile}) async {
+    try {
+      String? imageBase64;
+
+      // 이미지 인코딩 처리
+      if (imageFile != null) {
+        final bytes = await imageFile.readAsBytes();
+        imageBase64 = base64Encode(bytes); // Base64로 인코딩
+      }
+
+      // Firestore에 게시글 업데이트
+      await _db.collection('posts').doc(post.postId).update(post.toMap()..addAll({
+        'imageBase64': imageBase64, // Base64 인코딩된 이미지 추가
+      }));
+    } catch (e) {
+      print('Error updating post: $e');
+    }
+  }
+
   // 닉네임 중복 체크 메서드
   Future<bool> checkIfNicknameExists(String nickname) async {
     try {
@@ -47,10 +80,14 @@ class DatabaseService {
       return false;
     }
   }
+
   // 채팅 메시지 추가
   Future<void> addChatMessage(ChatMessage message, String chatId) async {
     try {
-      await _db.collection('chats/$chatId/messages').doc(message.id).set(message.toMap());
+      await _db
+          .collection('chats/$chatId/messages')
+          .doc(message.id)
+          .set(message.toMap());
     } catch (e) {
       print('[DEBUG] Error adding message: $e');
     }

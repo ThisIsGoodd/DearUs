@@ -1,7 +1,9 @@
-// lib/pages/new_post_page.dart
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
 
 class NewPostPage extends StatefulWidget {
   final String category;
@@ -10,13 +12,14 @@ class NewPostPage extends StatefulWidget {
   final String? existingTitle;
   final String? existingContent;
 
-  NewPostPage({
+  const NewPostPage({
     required this.category,
     this.isEditing = false,
     this.postId,
     this.existingTitle,
     this.existingContent,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   _NewPostPageState createState() => _NewPostPageState();
@@ -25,6 +28,7 @@ class NewPostPage extends StatefulWidget {
 class _NewPostPageState extends State<NewPostPage> {
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
+  File? _selectedImage;
   bool _isLoading = false;
 
   @override
@@ -36,43 +40,83 @@ class _NewPostPageState extends State<NewPostPage> {
     }
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<String?> _encodeImageToBase64(File image) async {
+    try {
+      final bytes = await image.readAsBytes();
+      return base64Encode(bytes); // Base64 인코딩
+    } catch (e) {
+      print('Error encoding image to Base64: $e');
+      return null;
+    }
+  }
+
   Future<void> _savePost() async {
+    if (_titleController.text.trim().isEmpty ||
+        _contentController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('제목과 내용을 입력해주세요.')),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        // Firestore에서 현재 사용자의 닉네임 가져오기
-        final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-        final userData = userDoc.data();
-        final nickname = userData?['nickname'] ?? '익명'; // 닉네임이 없으면 '익명' 사용
-
-        if (widget.isEditing && widget.postId != null) {
-          // 게시글 수정
-          await FirebaseFirestore.instance.collection('posts').doc(widget.postId).update({
-            'title': _titleController.text.trim(),
-            'content': _contentController.text.trim(),
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
-        } else {
-          // 새로운 게시글 작성
-          await FirebaseFirestore.instance.collection('posts').add({
-            'title': _titleController.text.trim(),
-            'content': _contentController.text.trim(),
-            'nickname': nickname, // 닉네임 저장
-            'userId': user.uid,
-            'category': widget.category,
-            'createdAt': FieldValue.serverTimestamp(),
-            'viewCount': 0, // 기본값 추가
-          });
-        }
-
-        Navigator.pop(context);
+      if (user == null) {
+        throw Exception('사용자가 로그인되지 않았습니다.');
       }
+
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      final userData = userDoc.data();
+      final nickname = userData?['nickname'] ?? '익명';
+
+      String? imageBase64;
+      if (_selectedImage != null) {
+        imageBase64 = await _encodeImageToBase64(_selectedImage!);
+      }
+
+      final postData = {
+        'title': _titleController.text.trim(),
+        'content': _contentController.text.trim(),
+        'nickname': nickname,
+        'userId': user.uid,
+        'category': widget.category,
+        'createdAt': FieldValue.serverTimestamp(),
+        'viewCount': 0,
+        'imageBase64': imageBase64, // Base64 이미지 데이터 저장
+      };
+
+      if (widget.isEditing && widget.postId != null) {
+        await FirebaseFirestore.instance
+            .collection('posts')
+            .doc(widget.postId)
+            .update(postData);
+      } else {
+        await FirebaseFirestore.instance.collection('posts').add(postData);
+      }
+
+      Navigator.pop(context);
     } catch (e) {
-      print('게시글 작성/수정 중 오류 발생: $e');
+      print('Error saving post: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('게시글 작성/수정 중 오류가 발생했습니다.')),
+      );
     } finally {
       setState(() {
         _isLoading = false;
@@ -84,72 +128,77 @@ class _NewPostPageState extends State<NewPostPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.isEditing ? '게시글 수정' : '게시글 작성',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Color(0xFFFDBEBE), // AppBar 배경색
-        iconTheme: IconThemeData(color: Colors.black),
+        title: Text(widget.isEditing ? '게시글 수정' : '게시글 작성'),
+        backgroundColor: const Color(0xFFFDBEBE),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: _isLoading
-            ? Center(child: CircularProgressIndicator())
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 제목 입력 필드
-                  TextField(
-                    controller: _titleController,
-                    decoration: InputDecoration(
-                      labelText: '제목',
-                      labelStyle: TextStyle(color: Color(0xFFFDBEBE)), // 제목 색상
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFFFDBEBE)),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 제목 입력 필드
+                    TextField(
+                      controller: _titleController,
+                      decoration: const InputDecoration(
+                        labelText: '제목',
+                        border: OutlineInputBorder(),
                       ),
                     ),
-                    style: TextStyle(color: Colors.black87), // 텍스트 색상
-                  ),
-                  SizedBox(height: 20), // 제목과 내용 사이의 간격
+                    const SizedBox(height: 16),
 
-                  // 내용 입력 필드
-                  TextField(
-                    controller: _contentController,
-                    decoration: InputDecoration(
-                      labelText: '내용',
-                      labelStyle: TextStyle(color: Color(0xFFFDBEBE)),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFFFDBEBE)),
+                    // 내용 입력 필드
+                    TextField(
+                      controller: _contentController,
+                      decoration: const InputDecoration(
+                        labelText: '내용',
+                        border: OutlineInputBorder(),
                       ),
+                      maxLines: 5,
                     ),
-                    maxLines: 5,
-                    style: TextStyle(color: Colors.black87),
-                  ),
-                  SizedBox(height: 30), // 내용과 버튼 사이의 간격
+                    const SizedBox(height: 16),
 
-                  // 저장 버튼
-                  ElevatedButton(
-                    onPressed: _savePost,
-                    child: _isLoading 
-                        ? CircularProgressIndicator() 
-                        : Text(
-                            widget.isEditing ? '수정하기' : '작성하기',
-                            style: TextStyle(color: Colors.white), // 글자색 설정
-                          ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFFDBEBE), // 버튼 배경색
-                      padding: EdgeInsets.symmetric(vertical: 12.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
+                    // 이미지 선택 버튼
+                    ElevatedButton.icon(
+                      onPressed: _pickImage,
+                      icon: const Icon(Icons.image),
+                      label: const Text('사진 선택'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFDBEBE),
                       ),
                     ),
-                  ),
-                ],
+
+                    // 선택한 이미지 미리보기
+                    if (_selectedImage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Image.file(
+                          _selectedImage!,
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+
+                    // 저장 버튼
+                    ElevatedButton(
+                      onPressed: _savePost,
+                      child: Text(widget.isEditing ? '수정하기' : '작성하기'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFDBEBE),
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-      ),
+            ),
     );
   }
 }

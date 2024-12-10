@@ -1,3 +1,4 @@
+  // lib/models/connection_model.dart
 class ChatMessage {
   final String id;
   final String senderId;
